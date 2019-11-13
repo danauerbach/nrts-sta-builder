@@ -1,0 +1,138 @@
+127.0.0.1    {{ hubhostname }} {{ hubhostname }}.ucsd.edu localhost.localdomain localhost  localhost4 localhost4.localdomain4
+::1          {{ hubhostname }} {{ hubhostname }}.ucsd.edu                         localhost6 localhost6.localdomain6
+
+#
+132.239.4.71   idahub.ucsd.edu idahub idahub-bge0
+
+# Remote (non-UCSD.EDU) sites and gateways which can (nominally)
+# be reached directly and which have assigned DNS names.  They
+# are listed here just so we can refer to them with short names.
+
+198.202.124.228  as108 ndc00
+#217.68.31.189   ale
+131.217.40.10   tau      # tau.geol.utas.edu.au
+137.110.255.105 hope-vsat-gw
+137.110.255.106 hope1 hope
+137.110.255.108 hope2
+137.110.255.109 hope3
+#163.178.140.27  jts-gw jts   # jts-gw.una.ac.cr
+163.178.144.129  jts-gw jts   # jts-gw.una.ac.cr
+202.83.167.108  nil
+202.83.167.109  nil-gw
+202.83.167.110  nil-mssp
+194.80.46.195   esk      # esua.nerc-eskdalemuir.ac.uk
+195.10.1.86     ascn     # ascn.co.ac (NAT gateway)
+157.157.218.100 borg-fw  # ISP/SO cell modem
+41.79.61.41     msey-isp-gw
+41.79.61.43     msey1 msey
+41.79.61.42     msey2
+196.21.92.1     sur      # suth.saao.ac.za
+199.105.8.161   hope-inmarsat-gw  # hope-isdn-gw.ucsd.edu
+199.105.8.162   hope-inmarsat hope-isdn # hope.ucsd.edu
+181.177.232.7   nna-gw   # nna-gw.igp.gob.pe
+193.232.109.4   fsuhub obn kiv aru lvz tly nril
+217.91.41.6     bfohub bfo # pd95b2906.dip0.t-ipconnect.de (NAT gateway)
+41.221.192.106  sacv-gw sacv
+128.95.166.80   ida.iris.washington.edu ida.iris
+192.5.99.17     ida.adc1.iris.edu ida.adc1
+
+# Remote (non-UCSD.EDU) sites and gateways which can (nominally)
+# be reached directly and which do not have assigned DNS names,
+# or whose registered names are with slow or otherwise unreliable
+# name servers.
+
+77.95.3.9       simi-gw simi
+
+197.158.86.27   abpo-gw abpo
+
+198.201.86.10   aftac.gov aftac
+89.218.244.22   brvk
+#203.171.254.252 coco
+203.171.254.249 coco
+202.44.112.81   dgar1 dgar
+202.44.112.82   dgar2
+195.248.193.70  efi-gw efi efi1
+89.218.124.163  kurk kurk1
+38.99.244.135   kwjn-fw kwjn
+38.99.244.138   kwaj-fw kwaj
+212.13.157.2    kzftp
+#217.11.77.80    kzhub
+89.219.28.100   kzhub
+80.78.31.74     mbar1 mbar
+80.78.31.75     mbar2
+193.232.109.166 obninsk-gateway devil gsras
+203.115.22.66   palk
+205.156.56.42   rpn rpn1
+194.6.0.226     shel
+194.170.95.165  uoss1 uoss
+194.170.95.164  uoss2
+
+{% if on_prem %}
+	# PFO/XPFO station
+	172.23.34.88   pfo-fw
+	# IDA Digis
+	172.23.34.96   pfo-e300  e300
+
+
+	# Femtometers
+
+	172.23.34.51   pfom1
+	172.23.34.52   pfoo1
+	172.23.34.53   pfom1
+
+	# Camp Elliot hosts
+
+	172.23.47.71    xell1 xell
+	172.23.47.72    xell00
+	172.23.47.73    xell10
+	172.23.47.74    xell-e300
+	172.23.47.75    xell-wifi
+	172.23.47.76    xell20
+	172.23.47.77    xell30
+{% endif %}
+
+{% if ctbto_accessible %}
+	# CTBTO GCI hosts
+
+	10.86.6.1       ctbto-vpn-gw
+	10.86.6.10      idahub-gci idahub-ctbto
+
+	10.17.71.5      nna1-gci nna-gci nna nna1
+	10.17.71.6      nna2-gci nna2
+
+	10.17.75.5      jts1-gci jts-gci
+	10.17.75.6      jts2-gci
+
+	10.33.67.5      borg1-gci borg-gci
+	10.33.67.6      borg2-gci
+
+	10.49.64.5      aak1-gci aak-gci aak aak1
+	10.49.64.6      aak2-gci aak2
+
+	10.49.65.5      palk1-gci palk-gci
+	10.49.65.6      palk2-gci
+
+	10.49.68.5      sur1-gci sur-gci
+	10.49.68.6      sur2-gci
+
+	10.49.71.5      kapi1-gci kapi-gci
+	10.49.71.6      kapi2-gci kapi2
+
+	10.49.74.5      mbar1-gci mbar-gci
+	10.49.74.6      mbar2-gci
+
+	10.64.39.5      kdak1-gci kdak-gci
+	10.64.39.6      kdak2-gci
+
+	10.64.44.5      msvf1-gci msvf-gci
+	10.64.44.6      msvf2-gci
+
+	10.64.51.5      rpn1-gci rpn-gci
+	10.64.51.6      rpn2-gci
+{% endif %}
+
+
+# Other stuff
+
+132.239.4.16     xxx dec-fw
+132.239.154.142  yyy dfa-fw

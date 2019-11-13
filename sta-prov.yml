@@ -1,0 +1,448 @@
+---
+- hosts: all
+  remote_user: root
+  vars:
+    system_hostname: zzz
+    sitelist:
+      - zzz
+    nrts_home: "/home/nrts"
+    nrts_src_version: "v0.9.10"
+    wfdiscs_on: true
+    ringserver_on: true
+    isodirs_on: true
+    ansible_become_pass: real.time
+    
+  tasks:
+      - name: set hostname
+        hostname:
+          name: "{{ system_hostname }}"
+        become: true
+
+      - name: set system timezone to UTC
+        timezone:
+          name: UTC
+
+      - name: install yum pkgs
+        yum:
+          name: "{{ item }}"
+          state: present
+          update_cache: yes
+        become: true
+        loop:
+          - openssh
+          - make
+          - gcc
+          - zlib-devel
+          - ncurses-devel
+          - libxml2-devel
+          - tcsh
+          - vim
+          - ntp
+          - wget
+          - git
+          - lsof
+          - man-pages
+          - epel-release
+          - iftop
+
+      - name: Set NRTS_HOME environment system wide
+        lineinfile:
+          path: /etc/environment
+          line: "export NRTS_HOME='{{ nrts_home }}'"
+          state: present
+          backup: yes
+        become: true
+
+      - name: set cron service to running and enabled
+        systemd:
+          name: crond
+          state: started
+          enabled: yes
+        become: true
+
+      - name: stop and disable chrony (going to use ntp)
+        # ignore errors in case chrony not installed
+        service:
+          name: chronyd.service
+          state: stopped
+          enabled: no
+        become: true
+        ignore_errors: True
+
+      - name: make sure local subnets can query ntp deamon
+        lineinfile:
+          path: /etc/ntp.conf
+          regexp: "^ *restrict *127.0.0.1"
+          insertafter: "^ *restrict"
+          line: 'restrict 127.0.0.1'
+          state: present
+          backup: yes
+        become: true
+
+      - name: set ntp service to running and enabled
+        systemd:
+          name: ntpd.service
+          state: started
+          enabled: yes
+        become: true
+
+      - name: create users
+        user:
+          name: "{{ item.name }}"
+          password: "{{ item.pass }}"
+          shell: "{{ item.shell }}"
+          state: present
+        become: true
+        loop:
+          - {name: nrts, home: /home/nrts, shell: /bin/tcsh, pass: '$6$njnBpOgBpBqYVmY0$wFvezGl83cf4RLm7OpGxHjRkZ7iToBLiwpR.jDhaDojcZ4BWyl2bFuSLfmiIlVrQiTL3k8Jf7aRFp10atguJJ/'}
+          - {name: ida, home: /home/ida, shell: /bin/bash, pass: '$6$projectida$.hErB4oi0uoLt9ExfkEc130B2/MUVXFd/4Ks7tfxhA4rzjmJgLjDIEEvoKkpr.ek6kRlxVj7BCdG8jqWJY1yV1'}
+
+      - name: update perms on homedirs
+        file:
+          path: "/home/{{ item }}"
+          state: directory
+          owner: "{{ item }}"
+          group: "{{ item }}"
+          mode: "g+rwx"
+        loop:
+          - nrts
+          - ida
+        become: true
+
+      - name: create nrts directories
+        file:
+          path: "{{ nrts_home }}/{{ item }}"
+          state: directory
+          owner: nrts
+          group: nrts
+          mode: 0755
+        become: true
+        loop:
+          - bin
+          - etc
+          - etc/xml
+          - etc/debug
+          - etc/init.d
+          - etc/start
+          - log
+          - scripts 
+          - build
+          - build/nrts
+          - tmp
+          - zzz
+
+      - name: add root to group nrts so it can write to ~nrts/log
+        user:
+          user: root
+          groups: nrts
+          append: yes
+        become: yes
+
+      # Configure rsyslog 
+      - name: install custom nrts rsyslog conf
+        template:
+          src: etc/nrts-rsyslog.j2
+          dest: /etc/rsyslog.d/nrts-rsyslog.conf
+          owner: root
+          group: root
+          mode: 0644
+          backup: yes
+        become: true
+
+      - name: make sure rsyslogd running and enabled with nrts custom conf
+        systemd:
+          name: rsyslog
+          state: restarted
+          enabled: yes
+        become: true
+
+      # Add PermitRootLogin no to /etc/sshd_config
+      - name: Set PermitRootLogin to 'no'
+        replace:
+          path: /etc/ssh/sshd_config
+          regexp: '^ *PermitRootLogin .* *yes'
+          replace: 'PermitRootLogin no'
+          backup: yes
+        become: true
+
+      - name: install custom nrts sudoers conf file
+        copy:
+          src: etc/nrts-sudoers.centos
+          dest: /etc/sudoers.d/nrts
+          owner: root
+          group: root
+          mode: 0644
+          backup: yes
+        become: true
+
+
+      - name: copy zzz sample nrts disk loop cnf file
+        copy:
+          src: "nrts/zzz/cnf"
+          dest: "{{ nrts_home }}/zzz/cnf"
+          owner: nrts
+          group: nrts
+          mode: preserve
+        become: true
+
+      - name: create iso dirs, if requested
+        file:
+          path: "{{ nrts_home }}/zzz/{{ item }}"
+          state: directory
+          owner: nrts
+          group: nrts
+          mode: 0755
+        become: true
+        loop:
+          - iso
+          - iso/staged
+          - iso/done
+          - iso/done/images
+          - iso/done/gziped
+        when: isodirs_on
+
+      - name: copy iso config file, if requested
+        copy:
+          src: "nrts/zzz/iso/config"
+          dest: "{{ nrts_home }}/zzz/iso/"
+          owner: nrts
+          group: nrts
+          mode: preserve
+        become: true
+        when: isodirs_on
+
+      - name: create SeedLink directories
+        file:
+          path: "{{ nrts_home }}/{{ item }}"
+          state: directory
+          owner: nrts
+          group: nrts
+          mode: 0775
+        when: ringserver_on
+        become: true
+        loop:
+          - SeedLink
+          - SeedLink/bin
+          - SeedLink/log
+          - SeedLink/ring
+
+      - name: create nrts wfdisc directory exists
+        file:
+          path: "{{ nrts_home }}/wfdiscs"
+          state: directory
+          owner: nrts
+          group: nrts
+          mode: 0775
+        when: wfdiscs_on
+        become: true
+
+      - name: create ~nrts/.ssh exists
+        file:
+          path: "{{ nrts_home }}/.ssh"
+          state: directory
+          owner: nrts
+          group: nrts
+          mode: 0700
+        become: true
+
+      - name: copy nrts etc files that don't need changing
+        copy:
+          src: "nrts/etc/{{ item }}"
+          dest: "{{ nrts_home }}/etc/"
+          owner: nrts
+          group: nrts
+          mode: preserve
+        become: true
+        loop:
+          - isid
+          - retain
+          - sint
+          - Processes
+          - q330.cfg
+          - q330
+          - start
+          - TunnelPeers
+          - Tunnels
+
+      - name: process nrts/etc/Systems template
+        template:
+          src: nrts/templates/etc/Systems.j2
+          dest: "{{ nrts_home }}/etc/Systems"
+          owner: nrts
+          group: nrts
+          mode: 0644
+        become: true
+
+      - name: copy source repositories
+        copy:
+          src: ./nrts/src/{{ item.src }}
+          dest: "{{ item.dest }}"
+          owner: nrts
+          group: nrts
+          mode: 0664
+        become: true
+        loop:
+          - { src: "ringserver-2018.078.tar.gz", dest: "{{ nrts_home }}/build" } 
+          - { src: "msi-3.8.tar.gz", dest: "{{ nrts_home }}/build" }
+          - { src: "slinktool-4.3.tar.gz", dest: "{{ nrts_home }}/build" }
+#          - { src: "src-nrts-{{ nrts_src_version }}.tar.gz", dest: "{{ nrts_home }}/build/nrts" }
+
+          # cd "{{ nrts_home }}/build/nrts"
+          # rm -rf src-nrts-{{ nrts_src_version }}
+          # tar xf src-nrts-{{ nrts_src_version }}.tar.gz
+          # cd src-nrts-{{ nrts_src_version }}
+
+      - name: build nrts software {{ nrts_src_version }}
+        shell: |
+          cd "{{ nrts_home }}/build/nrts"
+          rm -rf src
+          git clone https://github.com/projectida/src.git src
+          cd src
+          ./build.csh
+        args:
+          executable: /usr/bin/tcsh
+        become: yes
+        become_method: su
+        become_user: nrts
+
+      - name: deploy nrts Software
+        shell: |
+          cd {{ nrts_home }}
+          chmod -R 0755 {{ nrts_home }}/bin {{ nrts_home }}/scripts
+          cp {{ nrts_home }}/build/nrts/bin/linux.3.10.x86_64/* {{ nrts_home }}/bin
+          chmod 0555 {{ nrts_home }}/bin/*
+          cp {{ nrts_home }}/build/nrts/src/scripts/* {{ nrts_home }}/scripts
+          chmod 0555 {{ nrts_home }}/scripts/*
+        become: yes
+        become_method: su
+        become_user: nrts
+
+      - name: deploy special init scripts
+        copy:
+          src: "nrts/etc/init.d/{{ item.src }}"
+          dest: "{{ nrts_home }}/etc/init.d/{{ item.dest }}"
+          owner: nrts
+          group: nrts
+          mode: 0755
+        loop:
+          - { src: isid,   dest: isid }
+          - { src: nrts.centos,     dest: nrts }
+          - { src: ringserver,     dest: ringserver }
+        become: yes
+        become_method: su
+        become_user: nrts
+
+
+      - name: copy user nrts runtime env dotfiles
+        copy:
+          src: "{{ nrts_home }}/build/nrts/src/env-runtime/dotfiles/{{ item.src }}"
+          dest: "{{ nrts_home }}/{{ item.dest }}"
+          owner: nrts
+          group: nrts
+          mode: 0644
+          remote_src: yes
+        loop:
+          - { src: aliases,   dest: .aliases }
+          - { src: bvirc,     dest: .bvirc }
+          - { src: cshrc,     dest: .cshrc }
+          - { src: dbpickrc,  dest: .dbpickrc }
+          - { src: envrc,     dest: .envrc }
+          - { src: iwvrc,     dest: .iwvrc }
+          - { src: pathrc,    dest: .pathrc }
+          - { src: platform,  dest: .platform }
+        become: yes
+        become_method: su
+        become_user: nrts
+
+      ###########################
+      # SEEDLINK & MINISEED TOOLS
+
+      - name: build msi v3.8
+        shell: |
+          cd "{{ nrts_home }}/build"
+          rm -rf msi-3.8
+          tar xf msi-3.8.tar.gz
+          cd msi-3.8
+          make
+        args:
+          executable: /usr/bin/tcsh
+        become: yes
+        become_method: su
+        become_user: nrts
+
+
+      - name: build ringserver v2018.078
+        when: ringserver_on
+        shell: |
+          cd "{{ nrts_home }}/build"
+          rm -rf ringserver-2018.078
+          tar xf ringserver-2018.078.tar.gz
+          cd ringserver-2018.078
+          make
+        args:
+          executable: /usr/bin/tcsh
+        become: yes
+        become_method: su
+        become_user: nrts
+
+      - name: build slinktool v4.3 
+        shell: |
+          cd "{{ nrts_home }}/build"
+          rm -rf slinktool-4.3
+          tar xf slinktool-4.3.tar.gz
+          cd slinktool-4.3/libslink
+          make
+          cd ../ezxml
+          setenv CFLAGS -std=c99
+          make
+          cd ..
+          unsetenv CFLAGS
+          make
+        args:
+          executable: /usr/bin/tcsh
+        become: yes
+        become_method: su
+        become_user: nrts
+
+      - name: deploy seedlink and miniseed binaries to SeedLink/bin
+        copy:
+          src: "{{ nrts_home }}/build/{{ item }}"
+          dest: "{{ nrts_home }}/SeedLink/bin/"
+          owner: nrts
+          group: nrts
+          mode: 0755
+          remote_src: yes
+        loop:
+          - msi-3.8/msi
+          - ringserver-2018.078/ringserver
+          - slinktool-4.3/slinktool
+        become: yes
+        become_method: su
+        become_user: nrts
+
+      #######################################
+      # NRTS STATION CONFIGURATION
+      # as USER NRTS
+
+      # isiCreateDiskLoops
+      # copy cnf, boot
+      # nrts_mkdl zzz
+
+      # edit Systems
+
+
+      # **** NOTE: Contab needs to have ENV VAR NRTS_HOME set
+
+
+
+          
+      # - name: install IDA hub hosts file
+      #   template:
+      #     src: etc/hosts.j2
+      #     dest: /etc/hosts
+      #     owner: root
+      #     group: root
+      #     mode: 0644
+      #     backup: true
+      #   become: true
+
