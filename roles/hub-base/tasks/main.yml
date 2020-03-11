@@ -1,0 +1,226 @@
+- name: set hostname
+  hostname:
+    name: "{{ system_hostname }}"
+  become: true
+
+- name: set system timezone to UTC
+  timezone:
+    name: UTC
+
+# system specific tasks
+- name: 
+  include_tasks: "{{ ansible_facts['os_family']|lower }}_pkgs.yml"
+
+# NOTE: Cron not really used for base NRTS install
+# Only if further configured for STATION or HUB use
+- name: set cron service to running and enabled
+  systemd:
+    name: crond
+    state: started
+    enabled: yes
+  become: true
+
+- name: stop and disable chrony (going to use ntp)
+  # ignore errors in case chrony not installed
+  service:
+    name: chronyd.service
+    state: stopped
+    enabled: no
+  become: true
+  ignore_errors: True
+
+
+- name: make sure local subnets can query ntp deamon
+  lineinfile:
+    path: /etc/ntp.conf
+    regexp: "^ *restrict *127.0.0.1"
+    insertafter: "^ *restrict"
+    line: 'restrict 127.0.0.1'
+    state: present
+    backup: yes
+  become: true
+
+- name: set ntp service to running and enabled
+  systemd:
+    name: ntpd.service
+    state: started
+    enabled: yes
+  become: true
+
+- name: Set PermitRootLogin to 'no'
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^ *PermitRootLogin .* *yes'
+    replace: 'PermitRootLogin no'
+    backup: yes
+  become: true
+
+####################################
+# Generate password with python:
+#   python3 -c "from passlib.hash import sha512_crypt; import getpass; print(sha512_crypt.using(rounds=5000).hash(getpass.getpass()))"
+# is tcsh location system specific?
+# creating tunnel user even though only used on HUB systems that use ssh remote tunnels to pull from station
+- name: create nrts user and register result to grab homedir
+  user:
+    name: nrts
+    password: '$6$njnBpOgBpBqYVmY0$wFvezGl83cf4RLm7OpGxHjRkZ7iToBLiwpR.jDhaDojcZ4BWyl2bFuSLfmiIlVrQiTL3k8Jf7aRFp10atguJJ/'
+    shell: /bin/tcsh
+    # shell: "/bin/bash"
+    generate_ssh_key: yes
+    state: present
+  become: true
+  register: nrts_user
+  tags:
+    nrtsbuild
+
+- debug:
+    var: nrts_user.home
+
+- name: create other NRTS user(s)
+  user:
+    name: "{{ item.name }}"
+    password: "{{ item.pass }}"
+    shell: "{{ item.shell }}"
+    # shell: "/bin/bash"
+    generate_ssh_key: yes
+    state: present
+  become: true
+  loop:
+    - {name: ida, shell: /bin/tcsh, pass: '$6$projectida$.hErB4oi0uoLt9ExfkEc130B2/MUVXFd/4Ks7tfxhA4rzjmJgLjDIEEvoKkpr.ek6kRlxVj7BCdG8jqWJY1yV1'}
+    - {name: tunnel, shell: /bin/tcsh, pass: '$6$5or0AyWUxScC1CZ4$MRnTra4JNX6fPKN7QL.UlzGHxTGABPdjcZIvI0CM7b3pDRqLoXaJ9QdK2zBD7Co1/5x1biPiKkAh8U8rqUeeb0'}
+
+# requires nrts_user.home
+- name: install custom nrts sudoers conf file
+  template:
+    src: nrts-sudoers.{{ ansible_facts['os_family']|lower }}.j2
+    dest: /etc/sudoers.d/nrts
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  become: true
+
+# requires nrts_user.home
+- name: update perms on homedirs
+  file:
+    path: "{{ nrts_user.home }}"
+    state: directory
+    owner: nrts
+    group: nrts
+    mode: "g+rwx"
+  become: true
+  tags:
+    nrtsbuild
+
+# requires nrts_user.home 
+- name: install custom NRTS rsyslog conf
+  template:
+    src: nrts-rsyslog.redhat.j2
+    dest: /etc/rsyslog.d/nrts.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  become: true
+
+- name: make sure rsyslogd running and enabled with nrts custom conf
+  systemd:
+    name: rsyslog
+    state: restarted
+    enabled: yes
+  become: true
+
+# - name: create NRTS system directories
+#   file:
+#     path: "{{ nrts_user.home }}/{{ item }}"
+#     state: directory
+#     owner: nrts
+#     group: nrts
+#     mode: 0755
+#   become: true
+#   loop: "{{ nrts_dirlist|list }}"
+
+# - name: copy nrts etc files that don't need changing
+#   copy:
+#     src: "{{ item }}"
+#     dest: "{{ nrts_user.home }}/etc/"
+#     owner: nrts
+#     group: nrts
+#     mode: 0644
+#     force: no
+#   become: true
+#   loop:
+#     - isid
+#     - retain
+#     - sint
+#     - Processes
+#     - Systems
+#     - q330.cfg
+#     - q330
+#     - start
+#     - TunnelPeers
+#     - Tunnels
+
+- name: build nrts software
+  import_tasks: nrtsbuild.yml
+  vars:
+    build_root: "{{ nrts_user.home }}"
+    deploy_root: "{{ nrts_user.home }}"
+  tags:
+    nrtsbuild
+
+# #############################
+# MOVE TO SPECIFIC SYSTEM CONFIG
+# - name: create diskloop directories
+#   file:
+#     path: "{{ nrts_user.home }}/{{ item.name }}"
+#     state: directory
+#     owner: nrts
+#     group: nrts
+#     mode: 0755
+#   become: true
+#   loop: "{{ system_list|list }}"
+
+#   #TODO NEED TO CREATE TEMPLATES
+# - name: copy cnf template to any ida10 diskloop dirs
+#   template:
+#     src: cnf.j2
+#     dest: "{{ nrts_user.home }}/{{ item.name }}/cnf"
+#     owner: nrts
+#     group: nrts
+#     mode: 0644
+#   become: true
+#   loop: "{{ system_list||list }}"
+#   when: (item.type == 'ida10')
+
+# - name: process ~nrts/etc/Systems template
+#   template:
+#     src: Systems.j2
+#     dest: "{{ nrts_user.home }}/etc/Systems"
+#     owner: nrts
+#     group: nrts
+#     mode: 0644
+#   become: true
+
+# - name: install seedlink server if requested
+#   import_tasks: ringserver.yml
+#   vars:
+#     ringserver_location: "{{ nrts_user.home }}"
+#   when: slserver_on
+
+# - name: configure ISO archive dirs, if requested
+#   import_tasks: isoarc.yml
+#   vars:
+#     nrts_user.home: "{{ nrts_user.home }}"
+#     systems_list: "{{ systems_list|list }}"
+
+# - name: ensure nrts wfdisc directory exists, if requested
+#   file:
+#     path: "{{ nrts_user.ho }}/wfdiscs"
+#     state: directory
+#     owner: nrts
+#     group: nrts
+#     mode: 0775
+#   when: wfdisc_on
+#   become: true
+# #############################

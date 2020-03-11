@@ -70,13 +70,13 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
   # SHELL
 
   config.vm.provision "ansible" do |ansible|
-    ansible.verbose = ""
+    ansible.verbose = "v"
     ansible.playbook = "sta-prov.yml"
     ansible.compatibility_mode = "2.0"
     ansible.extra_vars = {
-#      stahostname: ENV['system_hostname'],
- #     nrts_home: ENV['nrts_home']
+        galaxy_role_file: "hub-base/main.yml"
     }
+  # ansible.tags = ["nrtsbuild"]
   end
 
 end

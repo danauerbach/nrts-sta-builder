@@ -1,0 +1,116 @@
+- name: make sure build dir exists
+  file:
+    path: "{{ build_root }}/build/nrts"
+    recurse: true
+    state: directory
+    owner: nrts
+    group: nrts
+    mode: 0755
+  become: true
+
+- name: get source repositories
+  shell: 
+    chdir: "{{ build_root }}/build/nrts"
+    cmd: |
+      rm -rf src bin
+      git clone https://github.com/projectida/src.git src
+  become: yes
+  become_method: su
+  become_user: nrts
+
+- name: create target dirs
+  file:
+    path: "{{ deploy_root }}/{{ item }}"
+    state: directory
+    owner: nrts
+    group: nrts
+    mode: 0755
+  become: true
+  loop:
+    - bin
+    - scripts
+    - scripts/init.d
+
+- name: build nrts software {{ nrts_src_version }}
+  shell: |
+    cd "{{ build_root }}/build/nrts/src"
+    ./build.csh {{ deploy_root }}
+  become: yes
+  become_method: su
+  become_user: nrts
+
+##################################
+# - name: deploy NRTS binaries and scripts
+#   copy: 
+#     src: "{{ build_root }}/build/nrts/src/scripts/{{ item.src }}"
+#     dest: "{{ deploy_root }}/scripts/{{ item.dest }}"
+#     owner: nrts
+#     group: nrts
+#     mode: 0755
+#   become: yes
+
+## TODO: NEED TO HANDLE NRTS START ON BOOT CONFIGURATION
+## redhat/centos 6: chkconfig line in nrts script in femto:/etc/init.d/nrts
+## systemd/centos7: nrts.service script???
+# - name: deploy special init scripts
+#   copy:
+#     src: "{{ build_root }}/build/nrts/src/scripts/init.d/{{ item.src }}"
+#     dest: "{{ deploy_root }}/scripts/init.d/{{ item.dest }}"
+#     owner: nrts
+#     group: nrts
+#     mode: 0755
+#     force: no
+#   loop:
+#     - { src: isid,   dest: isid }
+#     - { src: nrts.centos77,     dest: nrts }
+#     - { src: ringserver,     dest: ringserver }
+#   become: yes
+
+- name: copy user nrts runtime env dotfiles and default ~nrts/etc files
+  copy:
+    src: "{{ build_root }}/build/nrts/src/env-runtime/nrts/{{ item.src }}"
+    dest: "{{ deploy_root }}/{{ item.dest }}"
+    owner: nrts
+    group: nrts
+    mode: preserve
+    remote_src: yes
+  loop:
+    - { src: aliases,   dest: .aliases }
+    - { src: bvirc,     dest: .bvirc }
+    - { src: cshrc,     dest: .cshrc }
+    - { src: envrc,     dest: envrc }
+    - { src: iwvrc,     dest: .iwvrc }
+    - { src: pathrc,    dest: .pathrc }
+    - { src: platform,  dest: .platform }
+  become: yes
+  become_method: su
+  become_user: nrts
+
+- name: set NRTS_HOME in envrc
+  replace: 
+    path: "{{ deploy_root }}/envrc"
+    regexp: '^\b(setenv +NRTS_HOME)[^\n]*$'
+    replace: '\1 {{ nrts_user.home }}'
+  become: yes
+  become_method: su
+  become_user: nrts
+
+- name: rename envrc to .envrc
+  command: mv {{ deploy_root }}/envrc {{ deploy_root }}/.envrc
+  become: yes
+  become_method: su
+  become_user: nrts
+
+# - name: deploy scripts and binaries
+#   copy:
+#     src: "{{ item.src }}"
+#     dest: "{{ deploy_root }}/{{ item.dest }}"
+#     owner: nrts
+#     group: nrts
+#     mode: 0555
+#     directory_mode: 0775
+#     remote_src: yes
+#   loop:
+#     - { src: "{{ build_root }}/build/nrts/bin/*/", dest: "{{ deploy_root }}/bin" }
+#     - { src: "{{ build_root }}/build/nrts/scripts", dest: "{{ deploy_root }}/scripts" }
+
