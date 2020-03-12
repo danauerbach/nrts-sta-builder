@@ -46,14 +46,17 @@
     chdir: "{{ deploy_root }}/log"
     cmd: |
       touch nrtslog
-      chmod 775 nrtslog
+      chmod 664 nrtslog
   become: yes
   become_user: nrts
+  tags:
+    logger
 
 - name: add root to nrts group (for rsyslog)
   user:
     name: root
-    append: nrts
+    append: yes
+    groups: nrts
   become: yes
 
 # - name: deploy NRTS binaries and scripts

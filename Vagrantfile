@@ -77,7 +77,7 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
         galaxy_role_file: "hub-base/main.yml",
         nrts_user_auth: "#{ENV['NRTS_AUTH']}"
     }
-#    ansible.tags = ["nrtsbuild"]
+#    ansible.tags = ["logger"]
   end
 
 end
