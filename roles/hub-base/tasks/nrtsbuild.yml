@@ -18,19 +18,6 @@
   become_method: su
   become_user: nrts
 
-- name: create target dirs
-  file:
-    path: "{{ deploy_root }}/{{ item }}"
-    state: directory
-    owner: nrts
-    group: nrts
-    mode: 0755
-  become: true
-  loop:
-    - bin
-    - scripts
-    - scripts/init.d
-
 - name: build nrts software {{ nrts_src_version }}
   shell: |
     cd "{{ build_root }}/build/nrts/src"
@@ -40,19 +27,48 @@
   become_user: nrts
 
 ##################################
+- name: create nrts system dirs
+  file:
+    path: "{{ deploy_root }}/{{ item }}"
+    state: directory
+    owner: nrts
+    group: nrts
+    mode: 0775
+  become: true
+  loop:
+    - bin
+    - scripts
+    - log
+    - tmp
+
+- name: touch nrtslog
+  shell:
+    chdir: "{{ deploy_root }}/log"
+    cmd: |
+      touch nrtslog
+      chmod 775 nrtslog
+  become: yes
+  become_user: nrts
+
 # - name: deploy NRTS binaries and scripts
 #   copy: 
-#     src: "{{ build_root }}/build/nrts/src/scripts/{{ item.src }}"
-#     dest: "{{ deploy_root }}/scripts/{{ item.dest }}"
+#     src: "{{ build_root }}/build/nrts/{{ item.src }}"
+#     dest: "{{ deploy_root }}/{{ item.dest }}"
 #     owner: nrts
 #     group: nrts
 #     mode: 0755
+#     remote_src: yes
 #   become: yes
+#   become_user: nrts
+#   loop:
+#     - { src: bin, dest: bin }
+#     - { src: src/scripts, dest: scripts }
 
+## MOVED TO specific System CFG Repo
 ## TODO: NEED TO HANDLE NRTS START ON BOOT CONFIGURATION
 ## redhat/centos 6: chkconfig line in nrts script in femto:/etc/init.d/nrts
 ## systemd/centos7: nrts.service script???
-# - name: deploy special init scripts
+# - name: deploy isid and ringserver init scripts
 #   copy:
 #     src: "{{ build_root }}/build/nrts/src/scripts/init.d/{{ item.src }}"
 #     dest: "{{ deploy_root }}/scripts/init.d/{{ item.dest }}"
@@ -60,11 +76,24 @@
 #     group: nrts
 #     mode: 0755
 #     force: no
+#     remote_src: yes
 #   loop:
 #     - { src: isid,   dest: isid }
-#     - { src: nrts.centos77,     dest: nrts }
 #     - { src: ringserver,     dest: ringserver }
 #   become: yes
+#   become_user: nrts
+
+# - name: deploy nrts init scripts
+#   template:
+#     src: "{{ build_root }}/build/nrts/src/scripts/init.d/nrts.{{ target }}.j2"
+#     dest: "{{ deploy_root }}/scripts/init.d/nrts"
+#     owner: nrts
+#     group: nrts
+#     mode: 0755
+#     force: no
+#     remote_src: yes
+#   become: yes
+#   become_user: nrts
 
 - name: copy user nrts runtime env dotfiles and default ~nrts/etc files
   copy:
@@ -100,17 +129,4 @@
   become: yes
   become_method: su
   become_user: nrts
-
-# - name: deploy scripts and binaries
-#   copy:
-#     src: "{{ item.src }}"
-#     dest: "{{ deploy_root }}/{{ item.dest }}"
-#     owner: nrts
-#     group: nrts
-#     mode: 0555
-#     directory_mode: 0775
-#     remote_src: yes
-#   loop:
-#     - { src: "{{ build_root }}/build/nrts/bin/*/", dest: "{{ deploy_root }}/bin" }
-#     - { src: "{{ build_root }}/build/nrts/scripts", dest: "{{ deploy_root }}/scripts" }
 

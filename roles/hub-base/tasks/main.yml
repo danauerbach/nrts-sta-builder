@@ -65,7 +65,6 @@
     name: nrts
     password: '$6$njnBpOgBpBqYVmY0$wFvezGl83cf4RLm7OpGxHjRkZ7iToBLiwpR.jDhaDojcZ4BWyl2bFuSLfmiIlVrQiTL3k8Jf7aRFp10atguJJ/'
     shell: /bin/tcsh
-    # shell: "/bin/bash"
     generate_ssh_key: yes
     state: present
   become: true
@@ -87,7 +86,7 @@
   become: true
   loop:
     - {name: ida, shell: /bin/tcsh, pass: '$6$projectida$.hErB4oi0uoLt9ExfkEc130B2/MUVXFd/4Ks7tfxhA4rzjmJgLjDIEEvoKkpr.ek6kRlxVj7BCdG8jqWJY1yV1'}
-    - {name: tunnel, shell: /bin/tcsh, pass: '$6$5or0AyWUxScC1CZ4$MRnTra4JNX6fPKN7QL.UlzGHxTGABPdjcZIvI0CM7b3pDRqLoXaJ9QdK2zBD7Co1/5x1biPiKkAh8U8rqUeeb0'}
+    - {name: tunnel, shell: /sbin/nologin, pass: '$6$5or0AyWUxScC1CZ4$MRnTra4JNX6fPKN7QL.UlzGHxTGABPdjcZIvI0CM7b3pDRqLoXaJ9QdK2zBD7Co1/5x1biPiKkAh8U8rqUeeb0' }
 
 # requires nrts_user.home
 - name: install custom nrts sudoers conf file
@@ -168,59 +167,3 @@
     deploy_root: "{{ nrts_user.home }}"
   tags:
     nrtsbuild
-
-# #############################
-# MOVE TO SPECIFIC SYSTEM CONFIG
-# - name: create diskloop directories
-#   file:
-#     path: "{{ nrts_user.home }}/{{ item.name }}"
-#     state: directory
-#     owner: nrts
-#     group: nrts
-#     mode: 0755
-#   become: true
-#   loop: "{{ system_list|list }}"
-
-#   #TODO NEED TO CREATE TEMPLATES
-# - name: copy cnf template to any ida10 diskloop dirs
-#   template:
-#     src: cnf.j2
-#     dest: "{{ nrts_user.home }}/{{ item.name }}/cnf"
-#     owner: nrts
-#     group: nrts
-#     mode: 0644
-#   become: true
-#   loop: "{{ system_list||list }}"
-#   when: (item.type == 'ida10')
-
-# - name: process ~nrts/etc/Systems template
-#   template:
-#     src: Systems.j2
-#     dest: "{{ nrts_user.home }}/etc/Systems"
-#     owner: nrts
-#     group: nrts
-#     mode: 0644
-#   become: true
-
-# - name: install seedlink server if requested
-#   import_tasks: ringserver.yml
-#   vars:
-#     ringserver_location: "{{ nrts_user.home }}"
-#   when: slserver_on
-
-# - name: configure ISO archive dirs, if requested
-#   import_tasks: isoarc.yml
-#   vars:
-#     nrts_user.home: "{{ nrts_user.home }}"
-#     systems_list: "{{ systems_list|list }}"
-
-# - name: ensure nrts wfdisc directory exists, if requested
-#   file:
-#     path: "{{ nrts_user.ho }}/wfdiscs"
-#     state: directory
-#     owner: nrts
-#     group: nrts
-#     mode: 0775
-#   when: wfdisc_on
-#   become: true
-# #############################
