@@ -18,7 +18,7 @@
   become_method: su
   become_user: nrts
 
-- name: build nrts software {{ nrts_src_version }}
+- name: build nrts software
   shell: |
     cd "{{ build_root }}/build/nrts/src"
     ./build.csh {{ deploy_root }}
@@ -58,51 +58,6 @@
     append: yes
     groups: nrts
   become: yes
-
-# - name: deploy NRTS binaries and scripts
-#   copy: 
-#     src: "{{ build_root }}/build/nrts/{{ item.src }}"
-#     dest: "{{ deploy_root }}/{{ item.dest }}"
-#     owner: nrts
-#     group: nrts
-#     mode: 0755
-#     remote_src: yes
-#   become: yes
-#   become_user: nrts
-#   loop:
-#     - { src: bin, dest: bin }
-#     - { src: src/scripts, dest: scripts }
-
-## MOVED TO specific System CFG Repo
-## TODO: NEED TO HANDLE NRTS START ON BOOT CONFIGURATION
-## redhat/centos 6: chkconfig line in nrts script in femto:/etc/init.d/nrts
-## systemd/centos7: nrts.service script???
-# - name: deploy isid and ringserver init scripts
-#   copy:
-#     src: "{{ build_root }}/build/nrts/src/scripts/init.d/{{ item.src }}"
-#     dest: "{{ deploy_root }}/scripts/init.d/{{ item.dest }}"
-#     owner: nrts
-#     group: nrts
-#     mode: 0755
-#     force: no
-#     remote_src: yes
-#   loop:
-#     - { src: isid,   dest: isid }
-#     - { src: ringserver,     dest: ringserver }
-#   become: yes
-#   become_user: nrts
-
-# - name: deploy nrts init scripts
-#   template:
-#     src: "{{ build_root }}/build/nrts/src/scripts/init.d/nrts.{{ target }}.j2"
-#     dest: "{{ deploy_root }}/scripts/init.d/nrts"
-#     owner: nrts
-#     group: nrts
-#     mode: 0755
-#     force: no
-#     remote_src: yes
-#   become: yes
-#   become_user: nrts
 
 - name: copy user nrts runtime env dotfiles and default ~nrts/etc files
   copy:

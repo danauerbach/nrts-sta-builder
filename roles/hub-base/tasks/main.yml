@@ -63,7 +63,7 @@
 - name: create nrts user and register result to grab homedir
   user:
     name: nrts
-    password: '$6$njnBpOgBpBqYVmY0$wFvezGl83cf4RLm7OpGxHjRkZ7iToBLiwpR.jDhaDojcZ4BWyl2bFuSLfmiIlVrQiTL3k8Jf7aRFp10atguJJ/'
+    password: '$6$stLShLobm19c85mJ$400SYr7.6cQjYpQoP.70Hjn0Ii7d5YtlBgjK5KzUJeD2RWZQWVaUVBmhnkEcRKJW.uHJ7w1hwl5viXnuoZTSo0'
     shell: /bin/tcsh
     generate_ssh_key: yes
     state: present
@@ -128,37 +128,6 @@
     state: restarted
     enabled: yes
   become: true
-
-# - name: create NRTS system directories
-#   file:
-#     path: "{{ nrts_user.home }}/{{ item }}"
-#     state: directory
-#     owner: nrts
-#     group: nrts
-#     mode: 0755
-#   become: true
-#   loop: "{{ nrts_dirlist|list }}"
-
-# - name: copy nrts etc files that don't need changing
-#   copy:
-#     src: "{{ item }}"
-#     dest: "{{ nrts_user.home }}/etc/"
-#     owner: nrts
-#     group: nrts
-#     mode: 0644
-#     force: no
-#   become: true
-#   loop:
-#     - isid
-#     - retain
-#     - sint
-#     - Processes
-#     - Systems
-#     - q330.cfg
-#     - q330
-#     - start
-#     - TunnelPeers
-#     - Tunnels
 
 - name: build nrts software
   import_tasks: nrtsbuild.yml
