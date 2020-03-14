@@ -69,15 +69,14 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
   #   apt-get install -y apache2
   # SHELL
 
-  config.vm.provision "ansible" do |ansible|
-    ansible.verbose = "v"
-    ansible.playbook = "sta-prov.yml"
-    ansible.compatibility_mode = "2.0"
-    ansible.extra_vars = {
-        galaxy_role_file: "hub-base/main.yml",
-        nrts_user_auth: "#{ENV['NRTS_AUTH']}"
-    }
-#    ansible.tags = ["logger"]
-  end
+#  config.vm.provision "ansible" do |ansible|
+#    ansible.verbose = "v"
+#    ansible.playbook = "nrts-prov.yml"
+#    ansible.compatibility_mode = "2.0"
+#    ansible.extra_vars = {
+#        galaxy_role_file: "hub-base/main.yml",
+#        nrts_user_auth: "#{ENV['NRTS_AUTH']}"
+#    }
+#  end
 
 end

@@ -1,18 +1,19 @@
 ---
-- hosts: all
-  remote_user: root
+- hosts: "{{ host }}"
+  # remote_user: "{{ remoteuser }}"
   vars:
-    ansible_become_pass: "{{ nrts_user_auth }}"
-    # nrts config vars
-    # target_os: centos77
     target_major_version: "{{ ansible_facts['distribution_major_version'] }}"
     target_family: "{{ ansible_facts['os_family']|lower }}"
     target: "{{ target_family }}{{ target_major_version }}"
 
    
   tasks:
+
     - import_role:
         name: hub-base
       vars:
         nrts_src_version: ""  # currently unused, but should in ufutre, pull from github "release" version
-        system_hostname: hub
+        system_hostname: idahub
+        nrts_home_dir : /usr/nrts
+        nrts_user_auth: "{{ nrts_auth }}"
+

@@ -11,7 +11,7 @@
 # Specify the directory where the ringserver will store
 # the packet and stream buffers.  This must be specified.
 
-RingDirectory /usr/nrts/SeedLink/ring
+RingDirectory {{ nrts_home_dir }}/SeedLink/ring
 
 
 # Specify the ring packet buffer size in bytes.  A trailing
@@ -204,7 +204,7 @@ TransferLogRX 0
 # more details.
 
 #MSeedWrite <format>
-#BUD@/usr/nrts/SeedLink/BUD/
+#BUD@{{ nrts_home_dir}}/SeedLink/BUD/
 
 
 # Enable a special mode of operation where files containing Mini-SEED 

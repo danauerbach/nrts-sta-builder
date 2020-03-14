@@ -8,23 +8,33 @@
     mode: 0755
   become: true
 
+
+- name: clear old src and build artifacts
+  file:
+    path: "{{ build_root }}/build/nrts/{{ item }}"
+    state: absent
+  loop:
+    - bin
+    - lib
+    - src
+  become: yes
+
 - name: get source repositories
   shell: 
     chdir: "{{ build_root }}/build/nrts"
     cmd: |
-      rm -rf src bin
       git clone https://github.com/projectida/src.git src
+      chown -R nrts:nrts {{ build_root }}
   become: yes
-  become_method: su
-  become_user: nrts
 
 - name: build nrts software
   shell: |
     cd "{{ build_root }}/build/nrts/src"
     ./build.csh {{ deploy_root }}
-  become: yes
-  become_method: su
+  # become_method: su
+  # ansible_become_password: "{{ nrts_auth }}"
   become_user: nrts
+  become: yes
 
 ##################################
 - name: create nrts system dirs
@@ -47,8 +57,8 @@
     cmd: |
       touch nrtslog
       chmod 664 nrtslog
-  become: yes
   become_user: nrts
+  become: yes
   tags:
     logger
 
@@ -75,22 +85,24 @@
     - { src: iwvrc,     dest: .iwvrc }
     - { src: pathrc,    dest: .pathrc }
     - { src: platform,  dest: .platform }
-  become: yes
-  become_method: su
+  # become_method: su
   become_user: nrts
+  become: yes
 
 - name: set NRTS_HOME in envrc
   replace: 
     path: "{{ deploy_root }}/envrc"
     regexp: '^\b(setenv +NRTS_HOME)[^\n]*$'
-    replace: '\1 {{ nrts_user.home }}'
-  become: yes
-  become_method: su
+    replace: '\1 {{ deploy_root }}'
   become_user: nrts
+  become: yes
+  # vars:
+  #   ansible_become_pass: "{{ nrts_user_auth }}"
 
 - name: rename envrc to .envrc
   command: mv {{ deploy_root }}/envrc {{ deploy_root }}/.envrc
-  become: yes
-  become_method: su
   become_user: nrts
+  become: yes
+  # vars:
+  #   ansible_become_pass: "{{ nrts_user_auth }}"
 

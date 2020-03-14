@@ -55,40 +55,72 @@
     backup: yes
   become: true
 
+
+- name: NETOPS specific Create groups for user nrts so that shared resources are accessed appropriately
+  group:
+    name: nrts 
+    local: yes
+    gid: 4000
+    state: present
+    system: yes
+  become: yes
+  tags:
+    - usermod
+
 ####################################
 # Generate password with python:
 #   python3 -c "from passlib.hash import sha512_crypt; import getpass; print(sha512_crypt.using(rounds=5000).hash(getpass.getpass()))"
 # is tcsh location system specific?
 # creating tunnel user even though only used on HUB systems that use ssh remote tunnels to pull from station
-- name: create nrts user and register result to grab homedir
+- name: Make sure user NRTS is in local user DB
+  lineinfile:
+    path: /etc/passwd
+    regexp: '^nrts:'
+    line: "nrts:x:4000:4000:NRTS System User:{{ nrts_home_dir }}:/bin/tcsh"
+  become: yes
+  tags:
+    users
+
+- name: Set NRTS user password
   user:
     name: nrts
-    password: '$6$stLShLobm19c85mJ$400SYr7.6cQjYpQoP.70Hjn0Ii7d5YtlBgjK5KzUJeD2RWZQWVaUVBmhnkEcRKJW.uHJ7w1hwl5viXnuoZTSo0'
-    shell: /bin/tcsh
-    generate_ssh_key: yes
+    password: '$6$XKDZdmWCYmxoia/I$o2WRNFAr7k1a0Fa5Nim1LzQYScCFa33AUsl8JCeXjtsX.hJt.dfMfmhv7DMgKi/4LfJLe2FUfcTGUF4AHMZuL.'
     state: present
-  become: true
-  register: nrts_user
+  become: yes
   tags:
-    nrtsbuild
+    users
 
-- debug:
-    var: nrts_user.home
+- name: CReate user NRTS home dir (if not exists)
+  file:
+    name: "{{ nrts_home_dir }}"
+    state: directory
+    mode: 02755
+    owner: nrts
+    group: nrts
+  become: yes
+  tags:
+    users
+
+# - name: create nrts user and register result to grab homedir
+#   shell: /usr/sbin/luseradd -d {{ nrts_home_dir }} -s /bin/tcsh -u 4000 -g nrts -p '$6$stLShLobm19c85mJ$400SYr7.6cQjYpQoP.70Hjn0Ii7d5YtlBgjK5KzUJeD2RWZQWVaUVBmhnkEcRKJW.uHJ7w1hwl5viXnuoZTSo0' nrts
+#   become: true
+#   tags:
+#     usermod
 
 - name: create other NRTS user(s)
   user:
-    name: "{{ item.name }}"
-    password: "{{ item.pass }}"
-    shell: "{{ item.shell }}"
-    # shell: "/bin/bash"
+    name: tunnel
+    password: '$6$XKDZdmWCYmxoia/I$o2WRNFAr7k1a0Fa5Nim1LzQYScCFa33AUsl8JCeXjtsX.hJt.dfMfmhv7DMgKi/4LfJLe2FUfcTGUF4AHMZuL.'
+    shell: /bin.tcsh
+    home: /usr/tunnel
     generate_ssh_key: yes
     state: present
+    local: yes
   become: true
-  loop:
-    - {name: ida, shell: /bin/tcsh, pass: '$6$projectida$.hErB4oi0uoLt9ExfkEc130B2/MUVXFd/4Ks7tfxhA4rzjmJgLjDIEEvoKkpr.ek6kRlxVj7BCdG8jqWJY1yV1'}
-    - {name: tunnel, shell: /sbin/nologin, pass: '$6$5or0AyWUxScC1CZ4$MRnTra4JNX6fPKN7QL.UlzGHxTGABPdjcZIvI0CM7b3pDRqLoXaJ9QdK2zBD7Co1/5x1biPiKkAh8U8rqUeeb0' }
+  tags:
+    users
 
-# requires nrts_user.home
+# requires nrts_home_dir
 - name: install custom nrts sudoers conf file
   template:
     src: nrts-sudoers.{{ ansible_facts['os_family']|lower }}.j2
@@ -99,10 +131,10 @@
     backup: yes
   become: true
 
-# requires nrts_user.home
+# requires nrts_home_dir
 - name: update perms on homedirs
   file:
-    path: "{{ nrts_user.home }}"
+    path: "{{ nrts_home_dir }}"
     state: directory
     owner: nrts
     group: nrts
@@ -111,7 +143,7 @@
   tags:
     nrtsbuild
 
-# requires nrts_user.home 
+# requires nrts_home_dir 
 - name: install custom NRTS rsyslog conf
   template:
     src: nrts-rsyslog.redhat.j2
@@ -132,7 +164,8 @@
 - name: build nrts software
   import_tasks: nrtsbuild.yml
   vars:
-    build_root: "{{ nrts_user.home }}"
-    deploy_root: "{{ nrts_user.home }}"
+    build_root: "{{ nrts_home_dir }}"
+    deploy_root: "{{ nrts_home_dir }}"
+    nrts_auth: "{{ nrts_auth_user }}"
   tags:
     nrtsbuild
