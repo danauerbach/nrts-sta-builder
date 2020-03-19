@@ -167,5 +167,6 @@
     build_root: "{{ nrts_home_dir }}"
     deploy_root: "{{ nrts_home_dir }}"
     nrts_auth: "{{ nrts_auth_user }}"
+    git_src_branch: "{{ git_src_branch }}"
   tags:
     nrtsbuild
