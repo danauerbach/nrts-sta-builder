@@ -13,7 +13,8 @@
         name: hub-base
       vars:
         nrts_src_version: ""  # currently unused, but should in ufutre, pull from github "release" version
-        system_hostname: idahub
-        nrts_home_dir : /usr/nrts
+        system_hostname: idahub7
+        nrts_home_dir : "{{ nrts_home }}"
         nrts_user_auth: "{{ nrts_auth }}"
+        git_src_branch: "{{ git_src_branch }}"
 
