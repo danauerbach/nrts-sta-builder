@@ -77,12 +77,9 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
        host: "all",
        galaxy_role_file: "hub-base/main.yml",
        nrts_home: "/usr/nrts",
-       nrts_auth: "newnull.Pipe",
        git_src_branch: "develop"
    }
-  #  ansible.tags = [ 'nrtsbuild' ]
+  #  ansible.tags = [ 'miniseed', 'slinktool' ]
  end
-# ansible-playbook -K -i "idahub7," --extra-vars '{"host":"idahub7", "remoteuser":"dauerbach"}' nrts-prov.yml
-
 
 end

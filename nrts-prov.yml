@@ -1,6 +1,5 @@
 ---
 - hosts: "{{ host }}"
-  # remote_user: "{{ remoteuser }}"
   vars:
     target_major_version: "{{ ansible_facts['distribution_major_version'] }}"
     target_family: "{{ ansible_facts['os_family']|lower }}"
@@ -15,6 +14,7 @@
         nrts_src_version: ""  # currently unused, but should in ufutre, pull from github "release" version
         system_hostname: idahub7
         nrts_home_dir : "{{ nrts_home }}"
-        nrts_user_auth: "{{ nrts_auth }}"
-        git_src_branch: "{{ git_src_branch }}"
+        git_src_branch: "{{ git_branch }}"
 
+# For live IDAHUB7:
+# ansible-playbook -K -i "idahub7.ucsd.edu," --extra-vars '{"host":"idahub7.ucsd.edu", "nrts_home":"/usr/nrts", "git_branch":"develop"}' nrts-prov.yml
