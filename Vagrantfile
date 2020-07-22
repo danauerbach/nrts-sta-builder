@@ -76,7 +76,7 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
    ansible.extra_vars = {
        host: "all",
        galaxy_role_file: "hub-base/main.yml",
-       nrts_home: "/usr/nrts",
+       home_root: "/usr",
        git_src_branch: "develop"
    }
   #  ansible.tags = [ 'miniseed', 'slinktool' ]

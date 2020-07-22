@@ -18,4 +18,4 @@
         git_src_branch: "{{ git_branch }}"
 
 # For live IDAHUB7:
-# ansible-playbook -K -i "idahub7.ucsd.edu," --extra-vars '{"host":"idahub7.ucsd.edu", "nrts_home":"/usr/nrts", "git_branch":"develop"}' nrts-prov.yml
+# ansible-playbook -K -i "idahub7.ucsd.edu," --extra-vars '{"host":"idahub7.ucsd.edu", home_root":"/usr", "git_branch":"develop"}' nrts-prov.yml
