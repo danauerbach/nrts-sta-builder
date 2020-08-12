@@ -1,0 +1,32 @@
+# os_family == 'debian' SYSTEM SPECIFIC
+- name: install system pkgs
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  become: true
+  loop: 
+    - openssh-client
+    - openssh-server
+    - make
+    - zlib1g-dev
+    - wget
+    - gcc
+    - ncurses-base
+    - libxml2-dev
+    - libuser
+    - csh
+    - tcsh
+    - vim
+    - ntp
+    - cron
+    - git
+    - lsof
+    - man-db 
+    - manpages-posix
+    # - epel-release
+    # - iftop
+    # - xorriso
+    # - tree
+    # # - ncurses-bin
+    # xorriso really only for centos 7.7+, but need to get rid of ISOs all together.

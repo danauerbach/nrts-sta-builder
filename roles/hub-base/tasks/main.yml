@@ -6,6 +6,7 @@
 - name: set system timezone to UTC
   timezone:
     name: UTC
+  become: true
 
 # system specific tasks
 - name: 
@@ -19,7 +20,16 @@
     state: started
     enabled: yes
   become: true
+  when: ansible_facts['os_family'] == "RedHat"
 
+- name: set cron service to running and enabled
+  systemd:
+    name: cron
+    state: started
+    enabled: yes
+  become: true
+  when: ansible_facts['os_family'] == "Debian"
+  
 - name: stop and disable chrony (going to use ntp)
   # ignore errors in case chrony not installed
   service:
@@ -46,6 +56,15 @@
     state: started
     enabled: yes
   become: true
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: set ntp service to running and enabled
+  systemd:
+    name: ntp.service
+    state: started
+    enabled: yes
+  become: true
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: Set PermitRootLogin to 'no'
   replace:
@@ -234,6 +253,7 @@
   vars:
     build_root: "{{ nrts_home_dir }}"
     deploy_root: "{{ nrts_home_dir }}"
+  become: yes
   tags:
     nrtsbuild
 

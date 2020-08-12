@@ -13,6 +13,8 @@ Vagrant.configure("2") do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
   config.vm.box = "geerlingguy/centos7"
+  # config.vm.box = "bento/ubuntu-20.04"
+  
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -69,6 +71,12 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
   #   apt-get install -y apache2
   # SHELL
 
+################################################
+### FOR MAGIQ projects, use git branch "magiq".
+### git_src_branch=magiq vagrant up --provision
+
+git_src_branch = ENV['git_src_branch'] || 'develop'
+
  config.vm.provision "ansible" do |ansible|
    ansible.verbose = "vv"
    ansible.playbook = "nrts-prov.yml"
@@ -77,9 +85,9 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
        host: "all",
        galaxy_role_file: "hub-base/main.yml",
        home_root: "/usr",
-       git_src_branch: "develop"
+       git_src_branch: git_src_branch
    }
-  #  ansible.tags = [ 'miniseed', 'slinktool' ]
+    # ansible.tags = [ 'nrtsbuild'] ## , 'miniseed', 'slinktool' ]
  end
 
 end
