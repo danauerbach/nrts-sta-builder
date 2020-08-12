@@ -12,8 +12,8 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "geerlingguy/centos7"
-  # config.vm.box = "bento/ubuntu-20.04"
+  # config.vm.box = "geerlingguy/centos7"
+  config.vm.box = "bento/ubuntu-20.04"
   
 
   # Disable automatic box update checking. If you disable this, then
@@ -75,7 +75,7 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
 ### FOR MAGIQ projects, use git branch "magiq".
 ### git_src_branch=magiq vagrant up --provision
 
-git_src_branch = ENV['git_src_branch'] || 'develop'
+git_src_branch = ENV['git_src_branch'] || 'magiq'
 
  config.vm.provision "ansible" do |ansible|
    ansible.verbose = "vv"
