@@ -24,6 +24,11 @@
     - lsof
     - man-db 
     - manpages-posix
+    - octave
+    - octave-doc
+    - octave-info
+    - octave-htmldoc
+    - liboctave-dev
     # - epel-release
     # - iftop
     # - xorriso
