@@ -12,7 +12,7 @@
         name: hub-base
       vars:
         nrts_src_version: ""  # currently unused, but should in ufutre, pull from github "release" version
-        system_hostname: idahub7
+        system_hostname: magiq
         home_root: "{{ home_root }}"
         nrts_home_dir : "{{ home_root }}/nrts"
         git_src_branch: "{{ git_branch }}"
