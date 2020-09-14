@@ -1,8 +1,14 @@
 # os_family == 'debian' SYSTEM SPECIFIC
+
+- name: Update all packages to the latest version
+  apt:
+    upgrade: dist
+  become: true
+
 - name: install system pkgs
   apt:
     name: "{{ item }}"
-    state: present
+    state: latest
     update_cache: yes
   become: true
   loop: 
