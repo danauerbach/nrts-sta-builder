@@ -12,10 +12,14 @@
         name: hub-base
       vars:
         nrts_src_version: ""  # currently unused, but should in ufutre, pull from github "release" version
-        system_hostname: magiq
+        system_hostname: magiq-nrts
         home_root: "{{ home_root }}"
         nrts_home_dir : "{{ home_root }}/nrts"
         git_src_branch: "{{ git_branch }}"
 
 # For live IDAHUB7:
 # ansible-playbook -K -i "idahub7.ucsd.edu," --extra-vars '{"host":"idahub7.ucsd.edu", home_root":"/usr", "git_branch":"develop"}' nrts-prov.yml
+
+# for live magiq host:
+# ansible-playbook -K -i "<host-ipv4>," --extra-vars '{"host":"<host-ip>", home_root":"/usr", "git_branch":"magiq"}' nrts-prov.yml
+# ansible-playbook -K -i "100.64.80.242," --extra-vars '{"host":"100.64.80.242", home_root":"/usr", "git_branch":"magiq"}' nrts-prov.yml
