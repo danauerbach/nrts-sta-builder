@@ -2,7 +2,7 @@
 - name: install system pkgs
   yum:
     name: "{{ item }}"
-    state: present
+    state: latest
     update_cache: yes
   become: true
   loop: 
@@ -19,8 +19,11 @@
     - git
     - lsof
     - man-pages
-    - epel-release
+    - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     - iftop
     - xorriso
     - tree
+  tags:
+    base
+#    - epel-release
 # xorriso really only for centos 7.7+, but need to get rid of ISOs all together.
