@@ -11,11 +11,44 @@
     - import_role:
         name: hub-base
       vars:
-        nrts_src_version: ""  # currently unused, but should in ufutre, pull from github "release" version
+        nrts_src_version: ""  # currently unused, but should in future, pull from github "release" version
         system_hostname: idahub7
-        home_root: "{{ home_root }}"
-        nrts_home_dir : "{{ home_root }}/nrts"
+        home_root: "{{ home_location }}"
+        nrts_home_dir : "{{ home_location }}/nrts"
         git_src_branch: "{{ git_branch }}"
 
-# For live IDAHUB7:
-# ansible-playbook -K -i "idahub7.ucsd.edu," --extra-vars '{"host":"idahub7.ucsd.edu", home_root":"/usr", "git_branch":"develop"}' nrts-prov.yml
+#################################
+# Using on command line:
+# ansible-playbook
+#   -K # trigger request for become user password
+#   -i "<target host_or_ip>" 
+#    --extra-vars '{
+#       "host":"<target_hostname>"
+#       "home_location": "<location nrts homedir>" # E.g /usr or /home
+#       "git_branch": "<git-branch-of-nrts-src-repo-to-use>"
+#     }'
+# NOTE: can not just copy and paste above as is to command line
+#################################
+
+#################################
+# confirm can log into ec2 instance:
+#   ansible --private-key=danauerbach.pem -i aws_inventory -m ping -u ec2-user usw2az1
+# inventory file: aws_inventory
+#[usw2az1]
+#44.232.190.6
+
+#[usw2la1]
+#15.254.4.235
+
+#[use2az1]
+#3.13.125.127
+#################################
+
+
+#################################
+# For live IDAHUB7 using git develop branch:
+#
+# ansible-playbook -K -i "idahub7.ucsd.edu," \
+#    --extra-vars '{"host":"idahub7.ucsd.edu", \
+#                   "home_location":"/usr", \
+#                   "git_branch":"develop"}' nrts-prov.yml
