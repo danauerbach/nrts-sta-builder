@@ -78,7 +78,7 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
 git_src_branch = ENV['git_src_branch'] || 'develop'
 
  config.vm.provision "ansible" do |ansible|
-   ansible.verbose = "vv"
+   ansible.verbose = "v"
    ansible.playbook = "nrts-prov.yml"
    ansible.compatibility_mode = "2.0"
    ansible.extra_vars = {
