@@ -12,7 +12,7 @@
         name: hub-base
       vars:
         nrts_src_version: ""  # currently unused, but should in future, pull from github "release" version
-        system_hostname: idahub7
+        system_hostname: "{{ hostname }}"
         home_root: "{{ home_location }}"
         nrts_home_dir : "{{ home_location }}/nrts"
         git_src_branch: "{{ git_branch }}"
@@ -23,7 +23,8 @@
 #   -K # trigger request for become user password
 #   -i "<target host_or_ip>" 
 #    --extra-vars '{
-#       "host":"<target_hostname>"
+#       "host":"<target_hostname>", 
+#       "hostname": "<new hostname>",
 #       "home_location": "<location nrts homedir>" # E.g /usr or /home
 #       "git_branch": "<git-branch-of-nrts-src-repo-to-use>"
 #     }'
@@ -50,5 +51,6 @@
 #
 # ansible-playbook -K -i "idahub7.ucsd.edu," \
 #    --extra-vars '{"host":"idahub7.ucsd.edu", \
+#                   "hostname": "idahub7", \
 #                   "home_location":"/usr", \
 #                   "git_branch":"develop"}' nrts-prov.yml
