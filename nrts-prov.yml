@@ -49,6 +49,8 @@
 #################################
 # For live IDAHUB7 using git develop branch:
 #
+# PREP: must be able to ssh in to target system as user with sudo privs using public key pre-deployed on target
+#
 # ansible-playbook -K -i "idahub7.ucsd.edu," \
 #    --extra-vars '{"host":"idahub7.ucsd.edu", \
 #                   "hostname": "idahub7", \
