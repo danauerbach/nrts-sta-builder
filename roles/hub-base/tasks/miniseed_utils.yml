@@ -1,66 +1,25 @@
-# - name: create Ringserver directories
-#   file:
-#     path: "{{ ringserver_location }}/{{ item }}"
-#     state: directory
-#     owner: nrts
-#     group: nrts
-#     mode: 0775
-#   become: true
-#   loop: 
-#     - SeedLink
-#     - SeedLink/ring
-#     - SeedLink/bin
-#     - SeedLink/log
+- name: create Ringserver directories
+  file:
+    path: "{{ ringserver_location }}/{{ item }}"
+    state: directory
+    owner: nrts
+    group: nrts
+    mode: 0775
+  become: true
+  loop: 
+    - SeedLink
+    - SeedLink/ring
+    - SeedLink/bin
+    - SeedLink/log
 
-# - name: install ring.conf
-#   template:
-#     src: ring.conf.j2
-#     dest: "{{ ringserver_location }}/SeedLink/ring.conf"
-#     owner: nrts
-#     group: nrts
-#     mode: 0644
-#   become: true
-
-# - name: make sure build dir exists
-#   file:
-#     path: "{{ build_root }}"
-#     state: directory
-#   become: true
-#   tags:
-#     - miniseed
-
-# - name: deploy seedlink and miniseed binaries to SeedLink/bin
-#   copy:
-#     src: "{{ ringserver_location }}/build/{{ item }}"
-#     dest: "{{ ringserver_location }}/SeedLink/bin/"
-#     owner: nrts
-#     group: nrts
-#     mode: 755
-#     remote_src: yes
-#   loop:
-#     - { src: github-verison, build_dir: msi-3.8/msi }
-#     - ringserver-2018.078/ringserver
-#     - slinktool-4.3/slinktool
-#   become: yes
-#   become_method: su
-#   become_user: nrts
-
-# - name: download miniseed/ringserver utilities from github.com
-#   get_url:
-#     url: "{{ item.url }}"
-#     dest: "{{ build_root }}/build/"
-#     group: nrts
-#     owner: nrts
-#     mode: 0644
-#   loop:
-#     - { url: "https://github.com/iris-edu/dataselect/archive/v3.22.tar.gz" }
-#     - { url: "https://github.com/iris-edu/msi/archive/v3.8.tar.gz" }
-#     - { url: "https://github.com/iris-edu/ringserver/archive/v2020.075.tar.gz" }
-#     - { url: "https://github.com/iris-edu/slinktool/archive/v4.3.tar.gz" }
-#   become_user: nrts
-#   become: yes
-#   tags:
-#     - miniseed
+- name: install ring.conf
+  template:
+    src: ring.conf.j2
+    dest: "{{ ringserver_location }}/SeedLink/ring.conf"
+    owner: nrts
+    group: nrts
+    mode: 0644
+  become: true
 
 - name: download miniseed/ringserver utilities from github.com
   unarchive:
