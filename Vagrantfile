@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "geerlingguy/centos7"
+  config.vm.box = "generic/rocky8"
   # config.vm.box = "bento/ubuntu-20.04"
   
 
@@ -75,7 +75,7 @@ config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
 ### FOR MAGIQ projects, use git branch "magiq".
 ### git_src_branch=magiq vagrant up --provision
 
-git_src_branch = ENV['git_src_branch'] || 'develop'
+git_src_branch = ENV['git_src_branch'] || 'master'
 
  config.vm.provision "ansible" do |ansible|
    ansible.verbose = "v"
@@ -83,8 +83,9 @@ git_src_branch = ENV['git_src_branch'] || 'develop'
    ansible.compatibility_mode = "2.0"
    ansible.extra_vars = {
        host: "all",
+       hostname: "dfanrts",
        galaxy_role_file: "hub-base/main.yml",
-       home_root: "/usr",
+       home_rootdir: "/home",
        git_src_branch: git_src_branch
    }
     # ansible.tags = [ 'nrtsbuild'] ## , 'miniseed', 'slinktool' ]

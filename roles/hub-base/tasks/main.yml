@@ -14,7 +14,7 @@
     base
 
 # system specific tasks
-- name: 
+- name: include pkg install task
   include_tasks: "{{ ansible_facts['os_family']|lower }}_pkgs.yml"
   tags:
     base

@@ -8,7 +8,6 @@
     mode: 0755
   become: true
 
-
 - name: clear old src and build artifacts
   file:
     path: "{{ build_root }}/build/nrts/{{ item }}"

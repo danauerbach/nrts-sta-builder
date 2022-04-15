@@ -25,6 +25,7 @@
     - tree
     - golang
     - net-snmp
+    - unzip
   tags:
     base
 #    - epel-release

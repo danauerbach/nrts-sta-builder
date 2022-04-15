@@ -13,8 +13,8 @@
       vars:
         nrts_src_version: ""  # currently unused, but should in future, pull from github "release" version
         system_hostname: "{{ hostname }}"
-        home_root: "{{ home_location }}"
-        nrts_home_dir : "{{ home_location }}/nrts"
+        home_root: "{{ home_rootdir }}"
+        nrts_home_dir : "{{ home_rootdir }}/nrts"
         git_src_branch: "{{ git_branch }}"
 
 #################################
